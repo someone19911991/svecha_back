@@ -6,7 +6,14 @@ const ApiError = require('../exceptions/ApiError')
 class AuthController {
     async signIn(req, res, next) {
         try {
-            const result = await AuthService.signIn(req.body)
+            const user = await AuthService.signIn(req.body)
+            const { refreshToken, ...userData } = user
+            res.cookie('refreshToken', refreshToken, {
+                maxAge: 30 * 24 * 60 * 60 * 1000,
+                httpOnly: true,
+                secure: true,
+            })
+            return res.json(userData)
         } catch (err) {
             next(err)
         }
@@ -31,15 +38,40 @@ class AuthController {
                 message:
                     'Account successfully created, pls check your email to activate it',
             })
-            // res.cookie('refreshToken', user.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, secure: true})
-            // const {refreshToken, ...userData} = user
-            // return res.json(userData)
         } catch (err) {
             next(err)
         }
     }
-    async logout(req, res, next) {}
-    async refresh(req, res, next) {}
+    async logout(req, res, next) {
+        try {
+            const { refreshToken } = req.cookies
+            await AuthService.logout(refreshToken)
+            res.clearCookie('refreshToken')
+            return res.json({message: 'Logout success'})
+        } catch (err) {
+            next(err)
+        }
+    }
+
+
+    async refresh(req, res, next) {
+        try{
+            if(!req?.cookies?.refreshToken){
+                throw ApiError.UnauthorizedError()
+            }
+            const {refreshToken} = req.cookies
+            const user = await AuthService.refresh(refreshToken)
+            const {refreshToken: rToken, ...userData} = user
+            res.cookie('refreshToken', rToken, {
+                maxAge: 30 * 24 * 60 * 60 * 1000,
+                httpOnly: true,
+                secure: true,
+            })
+            return res.json(userData)
+        }catch(err){
+            next(err)
+        }
+    }
 
     async activateAccount(req, res, next) {
         try {

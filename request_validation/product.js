@@ -1,9 +1,17 @@
-const { check } = require('express-validator')
+const db = require('../db')
+const { check, body } = require('express-validator')
 
 const createProduct = [
     check('brand').not().isEmpty().withMessage('Brand is required'),
-    check('model').not().isEmpty().withMessage('Model is required'),
-    check('ref_num').not().isEmpty().withMessage('Model is required'),
+    check('model').not().isEmpty().withMessage('Model is required').custom(async(value) => {
+        const sql = `SELECT * FROM products WHERE model = "${value}"`
+        const res = await db.promise().query(sql)
+        if(res?.[0]?.[0]){
+            throw new Error('A product with such model name already exists')
+        }
+    }),
+    check('price_original').not().isEmpty().isNumeric().withMessage('Copy Price must be numeric'),
+    check('price_copy').not().isEmpty().isNumeric().withMessage('Original Price must be numeric'),
     check('detail_number')
         .not()
         .isEmpty()
@@ -16,6 +24,19 @@ const createProduct = [
         .not()
         .isEmpty()
         .withMessage('Category name is required'),
+    // body('refs').not().isEmpty().withMessage('Reference/s is required').custom(async(value) => {
+    //     const refs = JSON.parse(value)
+    //     let sql = refs.reduce((acc, ref) => {
+    //         acc += `"${ref.ref_num}", `
+    //         return acc
+    //     }, `SELECT * FROM refs WHERE ref_num IN(`)
+    //     sql = sql.slice(0, -2)
+    //     sql += ")"
+    //     const res = await db.promise().query(sql)
+    //     if(res?.[0].length){
+    //         throw new Error('Specified reference/s already exist');
+    //     }
+    // })
 ]
 
 const updateProduct = [
@@ -23,20 +44,6 @@ const updateProduct = [
     check('model').optional().trim().isLength({min: 1}).withMessage('Model must not be empty'),
     check('detail_number').optional().trim().isLength({min: 1}).withMessage('Detail number must not be empty'),
     check('ref_num').optional().trim().isLength({min: 1}).withMessage('Reference number must not be empty'),
-    // check('model').not().isEmpty().withMessage('Model is required'),
-    // check('ref_num').not().isEmpty().withMessage('Model is required'),
-    // check('detail_number')
-    //     .not()
-    //     .isEmpty()
-    //     .withMessage('Detail number is required'),
-    // check('category_id')
-    //     .not()
-    //     .isEmpty()
-    //     .withMessage('Category id is required'),
-    // check('category_name')
-    //     .not()
-    //     .isEmpty()
-    //     .withMessage('Category name is required'),
 ]
 
 const createIgnitionCoils = [
@@ -155,7 +162,7 @@ const updateSparkPlugs = [
         .withMessage('Electrodes number must be медь/платина/иридий'),
 ]
 
-const createTrainPillows = [
+const createAirbagCables = [
     ...createProduct,
     check('steering_axle_bore_diameter')
         .not()
@@ -171,7 +178,7 @@ const createTrainPillows = [
         .withMessage('Airbag plugs number must be numeric value'),
 ]
 
-const updateTrainPillows = [
+const updateAirbagCabels = [
     ...updateProduct,
     check('steering_axle_bore_diameter')
         .optional()
@@ -268,12 +275,12 @@ const updateIgnitionCoilMouthpieces = [
 module.exports = {
     createSparkPlugs,
     createIgnitionCoils,
-    createTrainPillows,
+    createAirbagCables,
     createCrankshaftCamshaftSensors,
     createIgnitionCoilMouthpieces,
     updateIgnitionCoilMouthpieces,
     updateCrankshaftCamshaftSensors,
     updateSparkPlugs,
     updateIgnitionCoils,
-    updateTrainPillows
+    updateAirbagCabels
 }

@@ -2,15 +2,21 @@ require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
+const fileUpload = require('express-fileupload')
+const path = require('path')
 const db = require('./db')
 const app = express()
 const router = require('./router')
 const ErrorMiddleware = require('./middlewares/ErrorMiddleware')
-const { PORT } = process.env
+const { PORT, APP_FRONT, APP_ADMIN  } = process.env
 
-app.use(express.json())
+app.use(express.static(path.resolve(__dirname, 'static')))
 app.use(cookieParser())
-app.use(cors())
+app.use(express.json())
+app.use(fileUpload({}))
+app.use(
+    cors({ origin: [APP_FRONT, APP_ADMIN], credentials: true })
+);
 app.use('/api', router)
 app.use(ErrorMiddleware)
 
