@@ -58,10 +58,52 @@ class AuthService {
             const userDto = { ...new UserDto(admin[0][0]) }
             const tokens = TokenService.generateTokens(userDto)
             await TokenService.saveToken(userDto.admin_id, tokens.refreshToken)
+
+            sql = `DELETE FROM password_forgotten WHERE email = "${email}"`
+            await db.promise().query(sql)
+
             return { ...tokens, user: userDto }
         } catch (err) {
             throw ApiError.BadRequest(err)
         }
+    }
+
+    async changePassword({password, token}){
+        try{
+            let sql = `SELECT * FROM password_forgotten WHERE token = "${token}"`
+            let result = await db.promise().query(sql)
+            result = result?.[0]?.[0]
+            let email = ''
+            if(result){
+                email = result.email
+            }
+            const hashedPass = await bcrypt.hash(password, 12)
+            if(email){
+                sql = `UPDATE admin set password = "${hashedPass}" WHERE email = "${email}"`
+                await db.promise().query(sql)
+            }
+        }catch(err){
+            throw ApiError.BadRequest(err.message)
+        }
+    }
+
+    async passwordForgotten(email){
+        try{
+            let sql = `SELECT * FROM admin where email = "${email}"`
+            let result = await db.promise().query(sql)
+            if(!result?.[0]?.[0]){
+                throw ApiError.BadRequest('Invalid email')
+            }
+            const token = uuid.v4()
+            sql = `INSERT INTO password_forgotten(email, token) VALUES("${email}", "${token}")`
+            await db.promise().query(sql)
+            await MailService.sendPassForgottenMail( email, token)
+            return true
+        }catch(err){
+            console.log(err)
+            throw ApiError.BadRequest(err.message)
+        }
+
     }
 
     async logout(refreshToken) {

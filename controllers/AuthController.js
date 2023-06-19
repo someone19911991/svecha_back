@@ -42,6 +42,27 @@ class AuthController {
             next(err)
         }
     }
+
+    async passwordForgotten(req, res, next){
+        try{
+            const {email} = req.body
+            await AuthService.passwordForgotten(email)
+            return res.json({message: 'All right'})
+        }catch(err){
+            next(err)
+        }
+    }
+
+    async changePassword(req, res, next){
+        try{
+            const {password, token} = req.body
+            await AuthService.changePassword({password, token})
+            return res.json({message: 'All right'})
+        }catch(err){
+            next(err)
+        }
+    }
+
     async logout(req, res, next) {
         try {
             const { refreshToken } = req.cookies

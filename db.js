@@ -1,12 +1,19 @@
 const mysql = require('mysql2')
 const { HOST, USER, PASSWORD, DATABASE } = process.env
 
-const db = mysql.createConnection({
+// const db = mysql.createConnection({
+//     host: HOST,
+//     user: USER,
+//     password: PASSWORD,
+//     database: DATABASE,
+// })
+
+const db = mysql.createPool({
     host: HOST,
     user: USER,
     password: PASSWORD,
     database: DATABASE,
-})
+}).promise()
 
 const db2 = mysql.createConnection({
     host: HOST,

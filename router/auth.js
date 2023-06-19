@@ -3,6 +3,8 @@ const AuthController = require('../controllers/AuthController')
 const { signup } = require('../request_validation/auth')
 
 router.get('/activate-email/:activation_link', AuthController.activateAccount)
+router.post('/password-forgotten', AuthController.passwordForgotten)
+router.post('/change-password/', AuthController.changePassword)
 router.post('/signup', ...signup, AuthController.signup)
 router.post('/sign-in', AuthController.signIn)
 router.post('/logout', AuthController.logout)
