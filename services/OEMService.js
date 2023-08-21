@@ -11,7 +11,7 @@ class OEMService{
             }
             propsToUpdate = propsToUpdate.slice(0, -2)
             let sql = `UPDATE oems SET ${propsToUpdate} WHERE oem_id = ${oem_id}`
-            await db.promise().query(sql)
+            await db.query(sql)
             return true
         }catch(err){
             throw ApiError.BadRequest(err.message)
@@ -20,7 +20,7 @@ class OEMService{
     async deleteOEM(oem_id){
         try{
             let sql = `DELETE FROM oems WHERE oem_id = ${oem_id}`
-            await db.promise().query(sql)
+            await db.query(sql)
             return true
         }catch(err){
             throw ApiError.BadRequest(err.message)

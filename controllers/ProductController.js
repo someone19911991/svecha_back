@@ -138,7 +138,7 @@ class ProductController {
 
     async deleteImg(req, res, next) {
         try {
-            const { product_id, img } = req.params
+            const { product_id, img, nextImg } = req.params
             await ProductService.deleteImg({ product_id, img })
             return res.json({ message: 'Img successfully deleted' })
         } catch (err) {
@@ -160,7 +160,8 @@ class ProductController {
 
     async searchProduct(req, res, next) {
         try {
-            const { search_data } = req.params
+            let search_data = req.query.term;
+            // search_data = search_data.replace('+', '\\\\+').trim()
             const result = await ProductService.searchProduct(search_data)
             return res.json(result)
         } catch (err) {

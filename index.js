@@ -22,12 +22,12 @@ app.use(ErrorMiddleware)
 
 const start = () => {
     app.listen(PORT, (err) => {
-        db.connect((err) => {
-            if (err) {
-                throw err
-            }
-            console.log('Server started')
-        })
+        // db.connect((err) => {
+        //     if (err) {
+        //         throw err
+        //     }
+        //     console.log('Server started')
+        // })
         console.log(`App running on port ${PORT}`)
     })
 }

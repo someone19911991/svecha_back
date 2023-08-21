@@ -1,5 +1,6 @@
 const ApiError = require('../exceptions/ApiError')
 const db = require('../db')
+const MailService =  require("../services/MailService")
 
 class OrderService{
     async orderProduct(data){
@@ -14,7 +15,7 @@ class OrderService{
             })
             product_ids = product_ids.slice(0, -2)
             const sql = `SELECT * FROM products WHERE product_id IN (${product_ids})`
-            const result = await db.promise().query(sql)
+            const result = await db.query(sql)
             let finalPrice = 0
             const updateSqls = []
             if(result[0].length){
@@ -32,15 +33,22 @@ class OrderService{
                             ordersToAdd[index] = [...ordersToAdd[index], phone, productItem.category_name, productItem[productType === 'original' ? 'price_original' : 'price_copy'], productItem.discount, productPrice]
                             finalPrice += productPrice
                             const sql = `UPDATE products SET ${productType === 'original' ? 'count_original' : 'count_copy'} = ${productItem[productType === 'original' ? 'count_original' : 'count_copy'] - orderedProduct.count} WHERE product_id = ${productItem.product_id}`
-                            updateSqls.push(await db.promise().query(sql))
+                            updateSqls.push(await db.query(sql))
                         }
                     })
                 })
             }
 
             await Promise.all(updateSqls)
-            await db.promise().query(`INSERT INTO ordered_products(product_id, product_type, count, phone, category, product_price, discount, sum) VALUES ?`, [ordersToAdd])
-
+            await db.query(`INSERT INTO ordered_products(product_id, product_type, count, phone, category, product_price, discount, sum) VALUES ?`, [ordersToAdd])
+            
+            let clients_count = await db.query(`SELECT count from clients_count WHERE id = 1`)
+            clients_count = clients_count?.[0]?.[0]
+            if(clients_count?.count){
+                await db.query(`UPDATE clients_count SET count = ${clients_count?.count + 1} WHERE id = 1`)
+            }
+            
+            await MailService.sendOrder()
             return finalPrice
         }catch(err){
             throw ApiError.ServerError(err.message)
@@ -50,7 +58,8 @@ class OrderService{
         const {name, phone, message} = data
         try{
             let sql = `INSERT INTO onorder(name, phone, message) VALUES("${name}", "${phone}", "${message}")`
-            await db.promise().query(sql)
+            await db.query(sql)
+            await MailService.sendOrder()
             return true
         }catch(err){
             console.log(err)
@@ -61,10 +70,10 @@ class OrderService{
     async getNotifications(status){
         try{
             let sql = `SELECT COUNT(phone) as phone_count, phone from ordered_products WHERE status = "${status}" GROUP BY(phone)`
-            let phoneCount = await db.promise().query(sql)
+            let phoneCount = await db.query(sql)
             phoneCount = phoneCount[0]
             sql = `SELECT o.product_id, o.product_type, o.count, o.phone, o.product_price, o.discount, o.sum, o.status, o.created_at, p.model from ordered_products as o INNER JOIN products as p ON o.product_id = p.product_id WHERE status = "${status}"`
-            let orderedProducts = await db.promise().query(sql)
+            let orderedProducts = await db.query(sql)
             orderedProducts = orderedProducts[0]
             return {orderedProducts, phoneCount}
         }catch(err){
@@ -75,7 +84,7 @@ class OrderService{
     async getMessages(status){
         try{
             let sql = `SELECT * FROM onorder WHERE status = "${status}"`
-            let result = await db.promise().query(sql)
+            let result = await db.query(sql)
             return result[0]
         }catch(err){
             throw ApiError.ServerError(err.message)
@@ -98,7 +107,7 @@ class OrderService{
                 sql = `DELETE FROM ordered_products WHERE phone IN ${soldItemsPhones}`
             }
 
-            await db.promise().query(sql)
+            await db.query(sql)
             return true
         }catch(err){
             throw ApiError.ServerError(err.message)
@@ -120,7 +129,7 @@ class OrderService{
             }else{
                 sql = `DELETE FROM onorder WHERE phone IN ${acceptedOrders}`
             }
-            await db.promise().query(sql)
+            await db.query(sql)
             return true
         }catch(err){
             throw ApiError.ServerError(err.message)
@@ -133,7 +142,7 @@ class OrderService{
             let sql = `SELECT SUM(sum) as sum, SUM(count) as count, category
                         FROM ordered_products where created_at between '${dateFrom}' and '${dateTo}'
                         GROUP BY category`
-            const result = await db.promise().query(sql)
+            const result = await db.query(sql)
             const finalData = []
             const spark_plugs = result[0].filter(item => item.category === 'spark_plugs')
             const ignition_coils = result[0].filter(item => item.category === 'ignition_coils')

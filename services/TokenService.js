@@ -15,16 +15,16 @@ class TokenService {
     async saveToken(admin_id, refresh_token) {
         try {
             let sql = `SELECT * FROM tokens WHERE admin_id = ${admin_id}`
-            let result = await db.promise().query(sql)
+            let result = await db.query(sql)
             if (result[0][0]) {
                 sql = `UPDATE tokens SET refresh_token = "${refresh_token}" WHERE admin_id = ${admin_id}`
-                await db.promise().query(sql)
+                await db.query(sql)
             } else {
                 sql = `INSERT INTO tokens SET ?`
-                await db.promise().query(sql, { admin_id, refresh_token })
+                await db.query(sql, { admin_id, refresh_token })
             }
 
-            return true
+            return refresh_token
         } catch (err) {
             throw ApiError.BadRequest(err.message)
         }
@@ -36,7 +36,7 @@ class TokenService {
                 throw ApiError.UnauthorizedError()
             }
             let sql = `SELECT * FROM tokens WHERE admin_id = ${admin_id}`
-            let result = await db.promise().query(sql)
+            let result = await db.query(sql)
             if(result?.[0]?.[0].refresh_token !== refresh_token){
                 throw ApiError.UnauthorizedError()
             }
@@ -50,7 +50,7 @@ class TokenService {
     async deleteToken(refreshToken) {
         try {
             let sql = `DELETE FROM tokens WHERE refresh_token = "${refreshToken}"`
-            await db.promise().query(sql)
+            await db.query(sql)
         } catch (err) {
             throw ApiError.BadRequest(err.message)
         }

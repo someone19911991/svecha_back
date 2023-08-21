@@ -5,7 +5,7 @@ class BrandService{
     async getBrands(){
         try{
             let sql = `SELECT * FROM brands`
-           const result = await db.promise().query(sql)
+           const result = await db.query(sql)
            return result[0]
         }catch(err){
             throw ApiError.ServerError(err.message)

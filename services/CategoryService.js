@@ -15,7 +15,7 @@ class CategoryService {
             const fileName = `${uuid.v4()}.${img.mimetype.split('/')[1]}`
             img.mv(path.resolve(__dirname, '..', 'static', fileName))
             const sql = `INSERT INTO categories SET ?`
-            await db.promise().query(sql, { img: fileName, ...restData })
+            await db.query(sql, { img: fileName, ...restData })
             return true
         } catch (err) {
             throw ApiError.BadRequest(err.message)
@@ -25,7 +25,7 @@ class CategoryService {
     async getCategory(categoryId) {
         try {
             const sql = `SELECT * FROM categories WHERE category_id = ${categoryId}`
-            const result = await db.promise().query(sql)
+            const result = await db.query(sql)
             if (result?.[0]?.[0]) {
                 return result?.[0]?.[0]
             }
@@ -38,7 +38,7 @@ class CategoryService {
         try {
             const { category_id, img, ...rest } = data
             let sql = `SELECT * FROM categories WHERE category_id = ${category_id}`
-            let result = await db.promise().query(sql)
+            let result = await db.query(sql)
             const oldImg = result[0][0].img
             let fileName = ''
             if(img){
@@ -56,7 +56,7 @@ class CategoryService {
             sqlRequest = sqlRequest.slice(0, -2)
             // return sqlRequest
             sql = `UPDATE categories SET ${sqlRequest} WHERE category_id = ${category_id}`
-            await db.promise().query(sql)
+            await db.query(sql)
             img.mv(path.resolve(__dirname, '..', 'static', fileName))
             const pathToImg = path.resolve(
                 __dirname,
@@ -66,7 +66,7 @@ class CategoryService {
             )
             fs.unlinkSync(pathToImg)
             sql = `SELECT * FROM categories WHERE category_id = ${category_id}`
-            result = await db.promise().query(sql)
+            result = await db.query(sql)
             return result[0][0]
         } catch (err) {
             throw ApiError.BadRequest(err.message)
@@ -78,7 +78,7 @@ class CategoryService {
             const category = await this.getCategory(categoryId)
             if (category) {
                 const sql = `DELETE FROM categories WHERE category_id = ${categoryId}`
-                await db.promise().query(sql)
+                await db.query(sql)
                 const pathToImg = path.resolve(
                     __dirname,
                     '..',
@@ -98,7 +98,7 @@ class CategoryService {
     async getCategories() {
         try {
             const sql = `SELECT * FROM categories`
-            const categories = await db.promise().query(sql)
+            const categories = await db.query(sql)
             return categories?.[0]
         } catch (err) {
             throw ApiError.BadRequest(err.message)

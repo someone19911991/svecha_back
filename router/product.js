@@ -19,8 +19,8 @@ router.get(
     '/spark-plugs/:sparkPlug_id',
     ProductController.getSparkPlugReferences
 )
-router.get('/search/:search_data', ProductController.searchProduct)
-router.get('/:category_name',  AuthMiddleware, ProductController.getProducts)
+router.get('/search', ProductController.searchProduct)
+router.get('/:category_name', ProductController.getProducts)
 router.get('/:category_name/:product_id', ProductController.getProduct)
 router.post(
     '/ignition_coils',

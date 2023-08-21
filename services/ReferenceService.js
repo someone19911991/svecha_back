@@ -11,7 +11,7 @@ class ReferenceService{
             }
             propsToUpdate = propsToUpdate.slice(0, -2)
             let sql = `UPDATE refs SET ${propsToUpdate} WHERE ref_id = ${ref_id}`
-            await db.promise().query(sql)
+            await db.query(sql)
             return true
         }catch(err){
             throw ApiError.BadRequest(err.message)
@@ -20,7 +20,7 @@ class ReferenceService{
     async deleteReference(ref_id){
         try{
             let sql = `DELETE FROM refs WHERE ref_id = ${ref_id}`
-            await db.promise().query(sql)
+            await db.query(sql)
             return true
         }catch(err){
             throw ApiError.BadRequest(err.message)

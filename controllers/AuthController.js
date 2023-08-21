@@ -82,6 +82,7 @@ class AuthController {
             }
             const {refreshToken} = req.cookies
             const user = await AuthService.refresh(refreshToken)
+            
             const {refreshToken: rToken, ...userData} = user
             res.cookie('refreshToken', rToken, {
                 maxAge: 30 * 24 * 60 * 60 * 1000,
