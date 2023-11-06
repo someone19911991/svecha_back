@@ -36,6 +36,15 @@ class ProductController {
         }
     }
 
+    async getTopSellingProducts(req, res, next){
+        try{
+            const result = await ProductService.getTopSellingProducts()
+            return res.json(result)
+        }catch(err){
+            next(err)
+        }
+    }
+
     async createProduct(req, res, next) {
         try {
             const errors = validationResult(req)
@@ -95,7 +104,6 @@ class ProductController {
                     : [],
             })
             return res.json(response)
-            return res.json({ message: 'Product successfully updated' })
         } catch (err) {
             next(err)
         }

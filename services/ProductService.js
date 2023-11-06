@@ -57,6 +57,20 @@ class ProductService {
         }
     }
 
+    async getTopSellingProducts(){
+        try{
+            const sql = `SELECT p.*, COUNT(t.product_id) AS total_count
+                                    FROM top_sellers t
+                                  INNER JOIN products p ON t.product_id = p.product_id
+                                GROUP BY p.product_id
+                                 ORDER BY COUNT(t.product_id) DESC LIMIT 50`
+            const res = await db.query(sql)
+            return res[0]
+        }catch(err){
+            throw ApiError.BadRequest(err.message)
+        }
+    }
+
     async createProduct(data) {
         const {
             imgs,
