@@ -435,8 +435,7 @@ class ProductService {
             if(resultsToReturn.length){
                 return resultsToReturn
             }
-
-            return 'Unknown data'
+            return null
         }catch(err){
             console.log({err})
         }
