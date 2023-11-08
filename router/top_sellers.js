@@ -1,6 +1,6 @@
-const IdentityController = require('../controllers/TopSellersController')
+const TopSellersController = require('../controllers/TopSellersController')
 const router = require('express').Router()
 
-router.post('/', IdentityController.checkIdentity)
+router.post('/', TopSellersController.checkIdentity)
 
 module.exports = router
